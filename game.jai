@@ -9,7 +9,9 @@ PLAYER_HEIGH := 40.0;
 
 BALL_RADIUS := 15.0;
 
-FPS :s32= 60;
+SPEED :: 600;
+FPS :: 60;
+DELTA_TIME : float = 1.0 / FPS;
 BORDER := 20.0;
 
 Player :: struct {
@@ -50,6 +52,7 @@ main :: () {
 
         for event : events_this_frame {
             if event.type == .QUIT then quit = true;
+            // if event.repeat then continue;
             if event.key_code == {
                 case .ARROW_LEFT {
                     ifx event.key_pressed then direction = .LEFT else direction = .IDLE;
@@ -58,6 +61,7 @@ main :: () {
                     ifx event.key_pressed then direction = .RIGHT else direction = .IDLE;
                 }
             }
+            print("event: %\n", event);
         }
 
         clear_render_target(vector4_spread(BACKGROUP_COLOR));
@@ -78,6 +82,7 @@ render_ball :: (using ball : Ball, using player : Player) {
 }
 
 refresh_player :: (using player : Player, game_width : float) {
+    _speed := SPEED * DELTA_TIME;
     using position;
     if direction == {
         case .INIT {
@@ -87,21 +92,21 @@ refresh_player :: (using player : Player, game_width : float) {
             w = xx height;
         }
         case .LEFT {
-            if x - speed < BORDER {
+            if x - _speed < BORDER {
                 x = BORDER;
                 z = BORDER + width;
             } else {
-                x -= speed;
-                z -= speed;
+                x -= _speed;
+                z -= _speed;
             } 
         }
         case .RIGHT {
-            if z + speed > game_width - BORDER {
+            if z + _speed > game_width - BORDER {
                 z = game_width - BORDER;
                 x = z - width;
             } else {
-                x += speed;
-                z += speed;
+                x += _speed;
+                z += _speed;
             }
         }
     }
