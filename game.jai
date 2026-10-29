@@ -9,7 +9,7 @@ PLAYER_HEIGH := 40.0;
 
 BALL_RADIUS := 15.0;
 
-FPS := 60;
+FPS :s32= 60;
 BORDER := 20.0;
 
 Player :: struct {
@@ -42,15 +42,15 @@ main :: () {
     ball := Ball.{radius = BALL_RADIUS, center = *Vector2.{}};
     quit := false;
 
-    print("game_width: %\n", w);
+    // print("game_width: %\n", w);
 
     using player;
     while !quit {
         update_window_events();
 
         for event : events_this_frame {
+            if event.type == .QUIT then quit = true;
             if event.key_code == {
-                case .ESCAPE; quit = true;
                 case .ARROW_LEFT {
                     ifx event.key_pressed then direction = .LEFT else direction = .IDLE;
                 }
@@ -60,12 +60,14 @@ main :: () {
             }
         }
 
-        clear_render_target(vector4_flat(BACKGROUP_COLOR));
+        clear_render_target(vector4_spread(BACKGROUP_COLOR));
         set_shader_for_color(true);
 
         refresh_player(player, xx w);
         render_ball(ball, player);
         swap_buffers(win);
+
+        sleep_milliseconds(1000 / FPS);
     }
 }
 
@@ -103,14 +105,14 @@ refresh_player :: (using player : Player, game_width : float) {
             }
         }
     }
-    immediate_quad(vector4_flat_x(position, PLAYER_COLOR));
+    immediate_quad(vector4_spread_x(position, PLAYER_COLOR));
 }
 
-vector4_flat :: (using vec : Vector4) -> float, float, float, float {
+vector4_spread :: (using vec : Vector4) -> float, float, float, float {
     return x, y, z, w;
 }
 
-vector4_flat_x :: (using vec : Vector4, vec2 : Vector4) -> float, float, float, float, Vector4 {
+vector4_spread_x :: (using vec : Vector4, vec2 : Vector4) -> float, float, float, float, Vector4 {
     return x, y, z, w, vec2;
 }
 
@@ -145,6 +147,16 @@ immediate_circle :: (center: Vector2, radius: float, color := Vector4.{1, 1, 1, 
             color
         );
     }
+}
+
+// 16进制颜色转换
+// 但似乎存在大小端问题
+// OxFF00FFFF 返回结果是，255, 255, 0, 255
+hex_color :: (hex : s64) -> float, float, float, float {
+    return xx (hex >> (0*8)) & 0xFF,
+           xx (hex >> (1*8)) & 0xFF,
+           xx (hex >> (2*8)) & 0xFF,
+           xx (hex >> (3*8)) & 0xFF;
 }
 
 operator + :: (vec : Vector4, num : float) -> Vector4 {
